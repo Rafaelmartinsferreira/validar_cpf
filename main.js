@@ -1,50 +1,62 @@
-// Superclas
-function Conta(agencia, conta, saldo) {
-    this.agencia = agencia;
-    this.conta = conta;
-    this.saldo = saldo;
+// 705.484.450-52 070.987.720-03
+/*
+7x  0x 5x 4x 8x 4x 4x 5x 0x
+10  9  8  7  6  5  4  3  2
+70  0  40 28 48 20 16 15 0 = 237
+
+11- (237 % 11) = 5 (primeiro digito)
+Se o numero digito for maior que 9, consideramos 0.
+
+7x  0x 5x 4x 8x 4x 4x 5x 0x 5x
+11  10 9  8  7  6  5  4  3  2
+77  0  45 32 56 24 20 20 0  10 = 284
+
+11 - (284 % 11) = 2 (primeiro digito)
+Se o numero digito for maior que 9, consideramos 0.
+*/
+function ValidaCPF(cpfEnviado) {
+    Object.defineProperty(this, 'cpfLimpo', {
+        get: function() {
+            return cpfEnviado.replace(/\D+/g, '');
+        }
+    })
+};
+
+ValidaCPF.prototype.valida = function() {
+    if(typeof this.cpfLimpo === 'undefined') return false;
+    if(this.cpfLimpo.length !== 11) return false;
+    if(this.isSequencia()) return false;
+    
+    const cpfParcial = this.cpfLimpo.slice(0, -2);
+    const digito1 = this.criaDigito(cpfParcial);
+    const digito2 = this.criaDigito(cpfParcial + digito1);
+
+    const novoCpf = cpfParcial + digito1 + digito2;
+    return novoCpf === this.cpfLimpo;
+};
+
+ValidaCPF.prototype.criaDigito = function(cpfParcial) {
+    const cpfArray = Array.from(cpfParcial);
+    let regressivo = cpfArray.length + 1;
+    const total = cpfArray.reduce((ac, val) => {
+        ac += (regressivo * Number(val));
+        regressivo--;
+        return ac;
+    }, 0);
+ 
+    const digito = 11 - (total % 11);
+    return digito > 9 ? '0' : String(digito);
+};
+
+ValidaCPF.prototype.isSequencia = function() {
+    const sequencia = this.cpfLimpo[0].repeat(this.cpfLimpo.length)
+return sequencia === this.cpfLimpo
 }
 
-Conta.prototype.sacar = function(valor) {
-    if(valor > this.saldo) {
-        console.log(`Saldo insuficiente: ${this.saldo}`);
-        return;
-    }
+const cpf = new ValidaCPF('157.357.607.77');
 
-    this.saldo -= valor;
-    this.verSaldo();
-};
-
-Conta.prototype.depositar = function(valor) {
-    this.saldo += valor;
-    this.verSaldo();
-};
-
-
-Conta.prototype.verSaldo = function() {
-    console.log(`Ag/c: ${this.agencia}/${this.conta} | ` +
-    `Saldo: R$${this.saldo.toFixed(2)}`
-    );
-};
-
-function CC(agencia, conta, saldo, limite) {
-    Conta.call(this, agencia, conta, saldo);
-    this.limite = limite;
+if(cpf.valida()) {
+    console.log('Cpf válido');
+} else {
+    console.log('Cpf inválido');
 }
-CC.prototype = Object.create(Conta.prototype);
-CC.prototype.constructior = CC;
-
-CC.prototype.sacar = function(valor) {
-    if(valor > (this.saldo + this.limite)) {
-        console.log(`Saldo insuficiente: ${this.saldo}`);
-        return;
-    }
-
-    this.saldo -= valor;
-    this.verSaldo();
-};
-
-const cc = new CC(11, 22, 0, 100);
-cc.depositar(10);
-cc.sacar(110);
-cc.sacar(110);
