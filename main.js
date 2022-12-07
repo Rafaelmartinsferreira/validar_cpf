@@ -53,7 +53,7 @@ ValidaCPF.prototype.isSequencia = function() {
 return sequencia === this.cpfLimpo
 }
 
-const cpf = new ValidaCPF('1709.594.807-06');
+const cpf = new ValidaCPF('709.594.807-06');
 
 if(cpf.valida()) {
     console.log('Cpf válido');
